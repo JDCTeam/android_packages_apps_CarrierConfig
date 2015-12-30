@@ -3,6 +3,7 @@ package com.android.carrierconfig;
 import android.content.Context;
 import android.os.Build;
 import android.os.PersistableBundle;
+import android.os.SystemProperties;
 import android.service.carrier.CarrierIdentifier;
 import android.service.carrier.CarrierService;
 import android.telephony.CarrierConfigManager;
@@ -39,6 +40,12 @@ public class DefaultCarrierConfigService extends CarrierService {
     private static final String SPN_EMPTY_MATCH = "null";
 
     private static final String TAG = "DefaultCarrierConfigService";
+
+    // Support unified device trees (CDMA+GSM, unique source)
+    public static final String BOOL_WORLD_PHONE = "bool_world_phone";
+    public static final String BOOL_SHOW_CDMA_CHOICES = "show_cdma_choices_bool";
+    public static final String BOOL_SHOW_APN_SETTING_CDMA = "bool_show_apn_setting_cdma";
+    private String DEVICE_FAMILY = SystemProperties.get("ro.ril.device_family");
 
     private XmlPullParserFactory mFactory;
 
@@ -88,6 +95,11 @@ public class DefaultCarrierConfigService extends CarrierService {
         try {
             PersistableBundle vendorConfig = readConfigFromXml(vendorInput, id);
             config.putAll(vendorConfig);
+	    if (DEVICE_FAMILY.equals("cdma")) {
+		    config.putBoolean(BOOL_WORLD_PHONE, true);
+		    config.putBoolean(BOOL_SHOW_CDMA_CHOICES, true);
+		    config.putBoolean(BOOL_SHOW_APN_SETTING_CDMA, true);
+	    }
         }
         catch (IOException | XmlPullParserException e) {
             Log.e(TAG, e.toString());
